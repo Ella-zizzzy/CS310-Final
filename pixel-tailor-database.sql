@@ -4,6 +4,7 @@ USE pixel-tailor;
 
 DROP TABLE IF EXISTS photos;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS lables;
 
 CREATE TABLE users
 (
@@ -37,7 +38,8 @@ CREATE TABLE lables
     userid            int not null,
     labelname         varchar(256) not null,  -- cat or dog or...
     PRIMARY KEY (lableid),
-    FOREIGN KEY (photoid) REFERENCES photos(photoid)
+    FOREIGN KEY (photoid) REFERENCES photos(photoid),
+    FOREIGN KEY (userid) REFERENCES users(userid)
 );
 
 ALTER TABLE lables AUTO_INCREMENT = 101;  -- starting value
