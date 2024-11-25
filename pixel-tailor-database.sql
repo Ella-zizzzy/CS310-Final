@@ -50,14 +50,14 @@ ALTER TABLE lables AUTO_INCREMENT = 101;  -- starting value
 -- 
 -- PWD hashing: https://phppasswordhash.com/
 --
-INSERT INTO users(username, password)  -- pwd = abc123!!
-            values('p_sarkar', 'abc123!!');
+--INSERT INTO users(username, password)  -- pwd = abc123!!
+--            values('p_sarkar', 'abc123!!');
 
-INSERT INTO users(username, password)  -- pwd = abc456!!
-            values('e_ricci', 'abc456!!');
+--INSERT INTO users(username, password)  -- pwd = abc456!!
+--            values('e_ricci', 'abc456!!');
 
-INSERT INTO users(username, password)  -- pwd = abc789!!
-            values('l_chen', 'abc789!!');
+--INSERT INTO users(username, password)  -- pwd = abc789!!
+--            values('l_chen', 'abc789!!');
 
 --
 -- creating user accounts for database access:
