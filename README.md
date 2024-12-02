@@ -81,11 +81,17 @@ This platform is an intelligent image processing and management system designed 
 ## API Endpoints
 
 ### User Operations:
+- List all users: /users -GET
+- Add new user:/addUser -POST
 
 ### Image Operations:
+- List all images of a user: /images/{userId} -GET
+- Upload a photo: /upload/{userId} -POST
+- Delete a photo: /delete/{userId} -DELETE
+- Process Image:
 
 ### Gallery Operations:
-
+- Retreive gallery: 
 
 ---
 
