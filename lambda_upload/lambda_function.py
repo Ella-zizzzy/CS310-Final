@@ -145,8 +145,7 @@ def lambda_handler(event, context):
     
     basename = pathlib.Path(filename).stem
 
-    # TODO: s3 bucketname needed
-    bucketkey = f"####/{bucketfolder}/{basename}-{uuid.uuid4()}{extension}"
+    bucketkey = f"pixeltailor/{bucketfolder}/{basename}-{uuid.uuid4()}{extension}"
     
     print("S3 bucketkey:", bucketkey)
 
@@ -167,7 +166,7 @@ def lambda_handler(event, context):
     
     photoid = row[0]
     
-    print("jobid:", photoid)
+    print("photoid:", photoid)
 
     #
     # now that DB is updated, let's upload image to S3:
@@ -188,7 +187,7 @@ def lambda_handler(event, context):
     
     return {
       'statusCode': 200,
-      'body': json.dumps(str(photoid))
+      'body': json.dumps({"message": "Photo uploaded successfully.", "photoid": photoid})
     }
     
   except Exception as err:

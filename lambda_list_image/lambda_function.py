@@ -13,7 +13,7 @@ from configparser import ConfigParser
 def lambda_handler(event, context):
   try:
     print("**STARTING**")
-    print("**lambda: final_users**")
+    print("**lambda: final_list_image**")
     
     #
     # setup AWS based on config file:
