@@ -129,8 +129,8 @@ def lambda_handler(event, context):
     # Validate the file extension
     print("**Validating file extension**")
     extension = pathlib.Path(filename).suffix.lower()
-    if extension not in ['.jpg', '.jpeg', '.png', '.heic']:
-        raise Exception("Invalid file format. Only .jpg, .jpeg, .heic and .png are allowed")
+    if extension not in ['.jpg', '.jpeg', '.png', '.heic', '.bmp', '.tiff', '.webp']:
+        raise Exception("Invalid file format. Only .jpg, .jpeg, .heic , .bmp, .tiff, .webp and .png are allowed")
 
     # Write image data to a temporary file
     print("**Writing local data file**")
