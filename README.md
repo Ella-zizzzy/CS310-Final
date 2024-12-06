@@ -91,7 +91,10 @@ This platform is an intelligent image processing and management system designed 
 - Process Image:
 
 ### Gallery Operations:
-- Retreive gallery: 
+- Retreive lables:  /gallery/{userid}   
+- Retreive gallery: /gallery/{userid}/{selected_lable}      
+
+
 
 ---
 
