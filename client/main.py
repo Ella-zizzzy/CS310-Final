@@ -160,15 +160,12 @@ def prompt():
     print("   0 => end")
     print("   1 => add new user")
     print("   2 => list all users")
-    print("   3 => list all photos of a user")
+    print("   3 => list all images of a user")
     print("   4 => upload and recognition")
-    print("   5 => delete photo")
+    print("   5 => delete image")
     print("   6 => retrieve gallery by labels")
-    
-
-    #print("   3 => reset database")
-    #print("   4 => upload pdf")
-    #print("   5 => download results")
+    print("   7 => download image")
+    print("   8 => process image")
 
     cmd = input()
 
@@ -351,6 +348,10 @@ def listphotos(baseurl):
       print("Enter user id>")
       userid = input()
 
+      if userid =="" or not userid.isdigit():
+        print("Invalid input. User ID must be numbers.")
+        return
+
       #get labels of the input userid TODO what is our api
       api = f"/listphotos/{userid}"
       url = baseurl + api
@@ -423,6 +424,9 @@ def upload(baseurl):
     print("Enter user id>")
     userid = input()
 
+    if userid =="" or not userid.isdigit():
+        print("Invalid input. User ID must be numbers.")
+        return
     #
     # build the data packet. First step is read the PDF
     # as raw bytes:
@@ -486,96 +490,219 @@ def upload(baseurl):
 
 ############################################################
 #
-# download
+# download_photo
 #
-def download(baseurl):
-  """
-  Prompts the user for the job id, and downloads
-  that asset (PDF).
+def download_photo(baseurl):
+    """
+    Prompts the user for photoid and userid, retrieves the image via API Gateway, and saves it locally.
 
-  Parameters
-  ----------
-  baseurl: baseurl for web service
+    Parameters
+    ----------
+    baseurl: base URL for the web service
 
-  Returns
-  -------
-  nothing
-  """
-  
-  try:
-    print("Enter job id>")
-    jobid = input()
-    
-    #
-    # call the web service:
-    #
-    api = f"/results/{jobid}"
-    url = baseurl + api
-    res = web_service_get(url)
-    
-    # TODO ???
+    Returns
+    -------
+    nothing
+    """
+    try:
+        print("Enter Photo ID>")
+        photoid = input().strip()
 
-    #
-    # let's look at what we got back:
-    #
-    if res.status_code == 200: #success
-      pass
-    elif res.status_code == 400: # no such job
-      body = res.json()
-      print(body)
-      return
-    elif res.status_code in [480, 481, 482]:  # uploaded
-      msg = res.json()
-      print("No results available yet...")
-      print("Job status:", msg)
-      return
-    else:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code == 500:
-        # we'll have an error message
-        body = res.json()
-        print("Error message:", body)
-      #
-      return
-      
-    #
-    # if we get here, status code was 200, so we
-    # have results to deserialize and display:
-    #
-    
-    body = res.json()
-    
-    # deserialize the message body:
-    # TODO: body = ???
+        print("Enter User ID>")
+        userid = input().strip()
 
-    datastr = body
+        if not photoid.isdigit() or not userid.isdigit():
+            print("Invalid input. Photo ID and User ID must be numbers.")
+            return
 
-    #
-    # encode the data string to obtain the raw bytes in base64,
-    # then call b64decode to obtain the original raw bytes.
-    # Finally, decode() the bytes to obtain the results as a 
-    # printable string.
-    #
-    
-    results = ""
-    base64_bytes = datastr.encode('utf-8')  
-    bytes = base64.b64decode(base64_bytes) 
-    results = bytes.decode('utf-8') 
-    # TODO: base64_bytes = ???
-    # TODO: bytes = ???
-    # TODO: results = ???
+        # Prepare the API endpoint
+        api = f"/download/{userid}/{photoid}"  # Path parameters
+        url = f"{baseurl}{api}"
 
-    print(results)
-    return
+        print(f"Sending GET request to {url}...")
+        response = requests.get(url)
 
-  except Exception as e:
-    logging.error("**ERROR: download() failed:")
-    logging.error("url: " + url)
-    logging.error(e)
-    return
-    
+        # Process the response
+        if response.status_code == 200:
+            print("Photo downloaded successfully.")
+            body = response.json()
+            encoded_file = body.get("encoded_file")
+            filename = body.get("filename", f"photo_{photoid}.jpg")
+
+            if encoded_file:
+                # Decode the base64-encoded image and save it to a file
+                with open(filename, "wb") as img_file:
+                    img_file.write(base64.b64decode(encoded_file))
+                print(f"Photo saved as '{filename}'")
+            else:
+                print("Error: No file data received.")
+        elif response.status_code == 400:
+            print("Bad Request: ", response.json().get("error"))
+        else:
+            print(f"Failed to download photo. Status code: {response.status_code}")
+            print("Error: ", response.text)
+
+    except Exception as e:
+        print(f"**ERROR**: {str(e)}")
+
+
+############################################################
+# 
+# process image
+
+def process_image(baseurl):
+    """
+    Prompts the user for input parameters, validates them, and processes an image via POST API.
+
+    Parameters
+    ----------
+    baseurl: base URL for the web service
+
+    Returns
+    -------
+    nothing
+    """
+    try:
+        print("Enter User ID>")
+        userid = input().strip()
+        if not userid.isdigit():
+            print("User ID must be a valid number.")
+            return
+
+        print("Enter Photo ID>")
+        photoid = input().strip()
+        if not photoid.isdigit():
+            print("Photo ID must be a valid number.")
+            return
+
+        # List supported operations
+        operations = ["crop", "thumbnail", "pad", "adjust_color", "change_color"]
+        print(f"Supported operations: {', '.join(operations)}")
+        print("Enter Operation>")
+        operation = input().strip()
+
+        if operation not in operations:
+            print(f"Invalid operation. Choose from {operations}")
+            return
+
+        # prompt for parameters based on operation
+        params = {}
+        if operation == "crop":
+          print("Enter crop parameters (left, top, right, bottom) [0-5000]>")
+          while True:
+              left = validate_numeric_input("Left", 0, 5000)
+              top = validate_numeric_input("Top", 0, 5000)
+              right = validate_numeric_input("Right", 0, 5000)
+              bottom = validate_numeric_input("Bottom", 0, 5000)
+
+              if right <= left:
+                  print("Error: 'Right' coordinate must be greater than 'Left'. Please enter again.")
+                  continue
+              if bottom <= top:
+                  print("Error: 'Bottom' coordinate must be greater than 'Top'. Please enter again.")
+                  continue
+
+              params["left"] = left
+              params["top"] = top
+              params["right"] = right
+              params["bottom"] = bottom
+              break
+        elif operation == "pad":
+            print("Enter pad dimensions (width, height) [1-5000]>")
+            params["width"] = validate_numeric_input("Width", 1, 5000)
+            params["height"] = validate_numeric_input("Height", 1, 5000)
+        elif operation == "thumbnail":
+          print("Generating thumbnail with fixed size 128x128...")
+          params = {}  # No parameters needed
+        elif operation == "adjust_color":
+            print("Enter brightness (0.0-2.0) and contrast (0.0-2.0)>")
+            params["brightness"] = validate_numeric_input("Brightness", 0.0, 2.0)
+            params["contrast"] = validate_numeric_input("Contrast", 0.0, 2.0)
+        elif operation == "change_color":
+            # print("Choose a color (Red, Green, Blue, Yellow, Black, White, Gray)>")
+            params["color"] = validate_color_name()
+
+        # Construct API Gateway URL
+        api = f"/process-image/{userid}/{photoid}/{operation}"
+        url = f"{baseurl}{api}"
+
+        # Prepare the POST body
+        payload = {
+            "parameters": params
+        }
+
+        print(f"Sending POST request to {url}...")
+        response = requests.post(url, json=payload)
+
+        # Process response
+        if response.status_code == 200:
+            print("Image processed successfully.")
+            body = response.json()
+            encoded_file = body.get("encoded_preview")
+            filename = body.get("filename", f"processed_{photoid}.jpg")
+
+            # Save the image locally
+            with open(filename, "wb") as img_file:
+                img_file.write(base64.b64decode(encoded_file))
+            print(f"Processed image saved as '{filename}'")
+
+        elif response.status_code == 400:
+            print("Bad Request:", response.json().get("error"))
+        else:
+            print(f"Failed to process image. Status code: {response.status_code}")
+            print("Error:", response.text)
+
+    except Exception as e:
+        print(f"**ERROR**: {str(e)}")
+
+
+############################################################
+# Helper Functions
+############################################################
+
+def validate_numeric_input(prompt, min_val, max_val):
+    """
+    Validates user input for numeric ranges.
+
+    Parameters:
+    - prompt (str): Input prompt
+    - min_val (float): Minimum acceptable value
+    - max_val (float): Maximum acceptable value
+    """
+    while True:
+        try:
+            value = float(input(f"{prompt} ({min_val}-{max_val})> ").strip())
+            if min_val <= value <= max_val:
+                return value
+            else:
+                print(f"Error: {prompt} must be between {min_val} and {max_val}")
+        except ValueError:
+            print("Invalid input. Please enter a numeric value.")
+
+
+def validate_color_name():
+    """
+    Validates and converts a user-friendly color name to a HEX color value.
+
+    Returns:
+    - str: Valid HEX color string
+    """
+    color_map = {
+        "red": "#FF0000",
+        "green": "#00FF00",
+        "blue": "#0000FF",
+        "yellow": "#FFFF00",
+        "black": "#000000",
+        "white": "#FFFFFF",
+        "gray": "#808080"
+    }
+
+    while True:
+        color_name = input("Enter color name (Red, Green, Blue, Yellow, Black, White, Gray)> ").strip().lower()
+        if color_name in color_map:
+            return color_map[color_name]
+        else:
+            print(f"Invalid color name. Choose from {', '.join(color_map.keys())}.")
 
 ############################################################
 #
@@ -603,6 +730,10 @@ def delete(baseurl):
     print("Enter photo id>")
     photoid = input()
 
+    if userid =="" or not userid.isdigit() or not photoid.isdigit():
+      print("Invalid input. User ID must be numbers.")
+      return
+    
     api = f"/delete/{userid}"
     url = baseurl + api
     data = {"photoid":photoid}
@@ -811,6 +942,10 @@ try:
       delete(baseurl)
     elif cmd == 6:
       retrieve_user_labels_and_images(baseurl)
+    elif cmd == 7:
+       download_photo(baseurl)
+    elif cmd == 8:
+       process_image(baseurl)
     else:
       print("** Unknown command, try again...")
     #
