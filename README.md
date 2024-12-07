@@ -1,6 +1,6 @@
 # CS310-Final-Pixel-Tailor
 
-# Intelligent Image Processing and Management Platform
+# Intelligent Image Processing and Management Application
 Team members: Ziyue Li, Shuyi Han, Rongwei Peng
 
 ## Overview
