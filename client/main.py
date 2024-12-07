@@ -164,6 +164,7 @@ def prompt():
     print("   4 => upload and recognition")
     print("   5 => delete photo")
     print("   6 => retrieve gallery by labels")
+    
 
     #print("   3 => reset database")
     #print("   4 => upload pdf")
@@ -330,12 +331,76 @@ def addusers(baseurl):
 
 ############################################################
 #
+# List photos
+#
+def listphotos(baseurl):
+
+    """
+    List all the photos information of the user.
+
+    Parameters
+    ----------
+    baseurl: baseurl for web service
+
+    Returns
+    -------
+    nothing
+    """
+    try:
+
+      print("Enter user id")
+      userid = input()
+
+      #get labels of the input userid TODO what is our api
+      api = f"/listphotos/{userid}"
+      url = baseurl + api
+      res = web_service_get(url)
+
+      if res is None:
+        print("Fail to list photos.")
+        return
+
+      if res.status_code == 400:
+        print(res.json())
+        return
+
+      if res.status_code !=200:
+        print(f"Fail with status code: {res.status_code}")
+
+      #successful 200
+      photos = res.json()
+
+      if not photos:
+        print(f"No photos found for user {userid}")
+        return
+
+
+      ##display all the photos
+      print(f"\nList all photos of user {userid}:")
+      for photo in photos:
+          print(f"  \nPhoto Details:")
+          print(f"  User ID: {photo[1]}")
+          print(f"  Photo ID: {photo[0]}")
+          print(f"  Photo Original Name: {photo[2]}")
+          print("\n")    
+
+
+    except Exception as e:
+      logging.error("**ERROR: listphotos() failed:")
+      logging.error(e)
+      print("An unexpected error occurred:", e)
+
+
+
+
+############################################################
+#
 # upload
 #
 def upload(baseurl):
   """
   Prompts the user for a local filename and user id, 
-  and uploads that asset (PDF) to S3 for processing. 
+  and uploads that photo to S3 for processing. 
 
   Parameters
   ----------
@@ -511,91 +576,73 @@ def download(baseurl):
     logging.error(e)
     return
     
-def upload_and_poll(baseurl):
+
+############################################################
+#
+# delete
+#
+def delete(baseurl):
+  """
+  Prompts the user for a local filename and user id.
+  Delete that photo
+
+  Parameters
+  ----------
+  baseurl: baseurl for web service
+
+  Returns
+  -------
+  nothing
+  """
+
   try:
-      print("Enter PDF filename>")
-      local_filename = input()
+    
+    print("Enter user id>")
+    userid = input()
 
-      if not pathlib.Path(local_filename).is_file():
-          print(f"PDF file '{local_filename}' does not exist...")
-          return
+    print("Enter photo id>")
+    photoid = input()
 
-      print("Enter user id>")
-      userid = input()
+    api = f"/delete/{userid}"
+    url = baseurl + api
+    data = {"photoid":photoid}
 
-      # Read the file
-      with open(local_filename, "rb") as infile:
-          bytes = infile.read()
+    res = requests.delete(url, json=data)
+    
+    if res.status_code == 200: #success
+      pass
+    elif res.status_code == 400: 
+      body = res.json()
+      print(body)
+      return
+    else:
+      # failed:
+      print("Failed with status code:", res.status_code)
+      print("url: " + url)
+      if res.status_code == 500:
+        
+        body = res.json()
+        print("Error message:", body)
 
-      datastr = base64.b64encode(bytes).decode('utf-8')  # Encode as base64 string
-      data = {"filename": local_filename, "userid": userid, "data": datastr}
+      return
 
-      # Upload the PDF
-      api = f"/pdf/{userid}"
-      url = baseurl + api
-      res = requests.post(url, json=data)
-
-      if res.status_code == 200:
-          body = res.json()
-          jobid = body
-          print(f"PDF uploaded successfully, job ID: {jobid}")
-      elif res.status_code == 400:
-          print(res.json())
-          return
-      else:
-          print(f"Upload failed with status code {res.status_code}")
-          return
-
-      # Poll the server for results
-      api = f"/results/{jobid}"
-      url = baseurl + api
-
-      while True:
-        res = web_service_get(url)
-
-        if res is None:
-          print("**ERROR: Failed to get a response from the server.")
-          break
-
-        print(f"Status code: {res.status_code}")
-
-        # Completed
-        if res.status_code == 200:  
-            body = res.json()
-            datastr = body['results']
-
-            base64_bytes = datastr.encode('utf-8')
-            bytes = base64.b64decode(base64_bytes)
-            results = bytes.decode('utf-8')
-
-            print("Results:")
-            print(results)
-            break
-        elif res.status_code in [480, 481, 482]:  # Still processing
-            print("No results available yet. Status:", res.json())
-        elif res.status_code >= 500:  # Server error
-            print(f"Server error: {res.status_code}, message: {res.json()}")
-            break
-        else:  # Some other client error (4xx)
-            print(f"Error: {res.status_code}, message: {res.json()}")
-            break
-
-        # Sleep for a random interval 
-        sleep_time = random.randint(1, 5)
-        print(f"Sleeping for {sleep_time} seconds before polling again...")
-        time.sleep(sleep_time)
+    #
+    # success, extract photoid:
+    #
+    print("The photo ",photoid," was deleted successfully.")
+    return
 
   except Exception as e:
-    logging.error("**ERROR: upload_and_poll() failed:")
+    logging.error("**ERROR: upload() failed:")
+    logging.error("url: " + url)
     logging.error(e)
-    print("An unexpected error occurred:", e)
-
+    return
 
 
 
 ############################################################
 #
-# Retrieval photos by lables
+# Retrieval photos by labels
 #
 def retrieve_user_labels_and_images(baseurl):
 
@@ -616,45 +663,45 @@ def retrieve_user_labels_and_images(baseurl):
       print("Enter user id")
       userid = input()
 
-      #get lables of the input userid TODO what is our api
-      api_lables = f"/gallery/{userid}"
-      url_lables = baseurl + api_lables
-      res_lables = web_service_get(url_lables)
+      #get labels of the input userid TODO what is our api
+      api_labels = f"/label/{userid}"
+      url_labels = baseurl + api_labels
+      res_labels = web_service_get(url_labels)
 
-      if res_lables is None:
-        print("Fail to retrievev lables.")
+      if res_labels is None:
+        print("Fail to retrievev labels.")
         return
 
-      if res_lables.status_code == 400:
-        print(res_lables.json())
+      if res_labels.status_code == 400:
+        print(res_labels.json())
         return
 
-      if res_lables.status_code !=200:
-        print(f"Fail with status code: {res_lables.status_code}")
+      if res_labels.status_code !=200:
+        print(f"Fail with status code: {res_labels.status_code}")
 
       #successful 200
-      lables = res_lables.json()
+      labels = res_labels.json()
 
-      if not lables:
-        print(f"No lables found for user {userid}")
+      if not labels:
+        print(f"No labels found for user {userid}")
         return
 
-      ##display all the lables
+      ##display all the labels
       print(f"Lable for user {userid}:")
-      for lable in lables:
-        print(f" - {lable} \n")
+      for label in labels:
+        print(f" - {label} \n")
 
       
-      #prompt for user to select which lable they want contain in the photo or EXIT
+      #prompt for user to select which label they want contain in the photo or EXIT
 
       while True:
-        print("Enter a lable to retrieve your photos (or '0' to EXIT)>")
-        selected_lable = input()
+        print("Enter a label to retrieve your photos (or 'E' to EXIT)>")
+        selected_label = input()
 
-        if selected_lable == '0':
-          break
+        if selected_label == 'E' or selected_label == 'e':
+          return
 
-        api_photos = f"/gallery/{userid}/{selected_lable}"
+        api_photos = f"/labelphoto/{userid}/{selected_label}"
         url_photos = baseurl + api_photos
         res_photos = web_service_get(url_photos)
 
@@ -674,18 +721,17 @@ def retrieve_user_labels_and_images(baseurl):
         photos = res_photos.json()
 
         if not photos:
-          print(f"No photos found for lable {selected_lable}")
+          print(f"No photos found for label {selected_label}")
           continue
 
-        ##display all the lables
-        print(f"\nPhoto with lable {selected_lable}:")
-        for lable in lables:
-          print(f"\n Photo Details:")
-          print(f"   User ID: {image.get('userid', 'N/A')}")
-          print(f"   Photo ID: {image.get('photoid', 'N/A')}")
-          print(f"   Lable Name: {image.get('labelname', 'N/A')}")
-          print(f"   Photo Original Name: {image.get('original_name', 'N/A')}")
-          print(f"   Bucket Key: {image.get('bucketkey', 'N/A')}")
+        ##display all the labels
+        print(f"\nPhotos with label {selected_label}:")
+        for photo in photos:
+          print(f"  \nPhoto Details:")
+          print(f"  User ID: {photo.get('userid', 'N/A')}")
+          print(f"  Photo ID: {photo.get('photoid', 'N/A')}")
+          print(f"  Lable Name: {photo.get('labelname', 'N/A')}")
+          print(f"  Photo Original Name: {photo.get('original_name', 'N/A')}")
           print("\n")
 
 
@@ -694,7 +740,6 @@ def retrieve_user_labels_and_images(baseurl):
       logging.error("**ERROR: retrieve_user_labels_and_images() failed:")
       logging.error(e)
       print("An unexpected error occurred:", e)
-
 
 ############################################################
 # main
@@ -758,14 +803,14 @@ try:
       addusers(baseurl)
     elif cmd == 2:
       users(baseurl) 
-    #elif cmd == 3:
-      
+    elif cmd == 3:
+      listphotos(baseurl)
     elif cmd == 4:
-      
-    #elif cmd == 5:
-      
-    #elif cmd == 6:
-      
+      upload(baseurl)
+    elif cmd == 5:
+      delete(baseurl)
+    elif cmd == 6:
+      retrieve_user_labels_and_images(baseurl)
     else:
       print("** Unknown command, try again...")
     #
@@ -782,3 +827,5 @@ except Exception as e:
   logging.error("**ERROR: main() failed:")
   logging.error(e)
   sys.exit(0)
+
+
