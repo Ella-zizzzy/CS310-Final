@@ -20,7 +20,7 @@ def lambda_handler(event, context):
     #
     # setup AWS based on config file:
     #TODO: config file needed
-    config_file = '#####'
+    config_file = 'final-project-config.ini'
     os.environ['AWS_SHARED_CREDENTIALS_FILE'] = config_file
     
     configur = ConfigParser()
@@ -123,14 +123,22 @@ def lambda_handler(event, context):
     #
     base64_bytes = datastr.encode()        # string -> base64 bytes
     bytes = base64.b64decode(base64_bytes) # base64 bytes -> raw bytes
+
+    #
+    # Validate file size:
+    #
+    print("**Validating file size**")
+    max_size = 5 * 1024 * 1024  # 5 MB in bytes
+    if len(bytes) > max_size:
+        raise Exception(f"File size exceeds 5 MB limit. Actual size: {len(bytes)} bytes")
     
     #
     # write raw bytes to local filesystem for upload:
     # Validate the file extension
     print("**Validating file extension**")
     extension = pathlib.Path(filename).suffix.lower()
-    if extension not in ['.jpg', '.jpeg', '.png', '.heic', '.bmp', '.tiff', '.webp']:
-        raise Exception("Invalid file format. Only .jpg, .jpeg, .heic , .bmp, .tiff, .webp and .png are allowed")
+    if extension not in ['.jpg', '.jpeg', '.png']:
+        raise Exception("Invalid file format. Only .jpg, .jpeg, .png are allowed")
 
     # Write image data to a temporary file
     print("**Writing local data file**")

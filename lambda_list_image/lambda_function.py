@@ -20,7 +20,7 @@ def lambda_handler(event, context):
     #
     #TODO: config file needed
     #
-    config_file = '####'
+    config_file = 'final-project-config.ini'
     os.environ['AWS_SHARED_CREDENTIALS_FILE'] = config_file
     
     configur = ConfigParser()

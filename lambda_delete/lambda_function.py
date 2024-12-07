@@ -10,7 +10,7 @@ def lambda_handler(event, context):
         print("**lambda: final_delete_image**")
 
         # Setup AWS based on config file
-        config_file = '#####'  
+        config_file = 'final-project-config.ini'  
         os.environ['AWS_SHARED_CREDENTIALS_FILE'] = config_file
 
         configur = ConfigParser()

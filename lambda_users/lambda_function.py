@@ -20,7 +20,7 @@ def lambda_handler(event, context):
     #
     #TODO: config file needed
     #
-    config_file = '####'
+    config_file = 'final-project-config.ini'
     os.environ['AWS_SHARED_CREDENTIALS_FILE'] = config_file
     
     configur = ConfigParser()
@@ -51,11 +51,11 @@ def lambda_handler(event, context):
     # select all users' info from the 
     # users table, ordered by userid
     #
-    sql = "SELECT userid, username FROM users ORDER BY userid";
+    sql = "SELECT userid, username FROM users ORDER BY userid"
     
     rows = datatier.retrieve_all_rows(dbConn, sql)
     
-    if row == ():
+    if rows == ():
       print("**No users...**")
 
     for row in rows:
