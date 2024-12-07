@@ -6,6 +6,20 @@ Team members: Ziyue Li, Shuyi Han, Rongwei Peng
 ## Overview
 This platform is an intelligent image processing and management system designed to leverage a serverless architecture powered by AWS services. It provides users with a seamless experience for uploading, processing, recognizing, and retrieving images through advanced technologies. The platform integrates AWS Lambda, S3, Rekognition, and RDS (MySQL) to perform efficient image handling and dynamic gallery retrieval.
 
+
+## Installation:
+1. Clone the repository or download the .zip file.
+2. Open terminal and nevigate to the client folder.
+3. Run the following commands line by line to build and run the docker:
+   
+   `chmod 755 *.bash`
+   
+   `./docker-build.bash`
+   
+   `./docker-run.bahs`
+   
+5. Then run `python main.py`. The application will start running and you're good:)
+
 ## Features
 
 ### Client-Side Features:
@@ -97,18 +111,6 @@ This platform is an intelligent image processing and management system designed 
 
 
 ---
-
-## Getting Started
-
-### Prerequisites:
-- AWS account with permissions for Lambda, S3, Rekognition, and RDS.
-- MySQL database set up in AWS RDS.
-
-### Installation:
-1. Clone the repository.
-2. Configure AWS credentials in the project.
-3. Set up the MySQL database and update connection details in the configuration.
-4. Deploy Lambda functions via AWS CLI or SAM.
 
 ### Usage:
 1. Start the client-side application.
