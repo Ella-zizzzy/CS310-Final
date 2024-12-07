@@ -10,7 +10,7 @@ This platform is an intelligent image processing and management system designed 
 
 ### Client-Side Features:
 1. **User Management**:
-   - Users can register or log in to manage their image collections.
+   - Users can register and manage their image collections.
 
 2. **View Image List**:
    - View all uploaded images associated with their account.
@@ -48,7 +48,7 @@ This platform is an intelligent image processing and management system designed 
    - Metadata is dynamically managed for efficient storage and retrieval in RDS (MySQL).
 
 4. **Image Processing**:
-   - Images retrieved from S3 are processed using AWS Lambda and the Pillow library for resizing, cropping, and other transformations based on user configurations.
+   - Images retrieved from S3 are processed using AWS Lambda and the Pillow library for resizing, color changing, and other transformations based on user configurations.
 
 5. **Gallery Management**:
    - Dynamically query the database to retrieve image URLs based on user-selected labels.
