@@ -51,7 +51,7 @@ def lambda_handler(event, context):
     # select all users' info from the 
     # users table, ordered by userid
     #
-    sql = "SELECT userid, username FROM users ORDER BY userid"
+    sql = "SELECT * FROM users ORDER BY userid"
     
     rows = datatier.retrieve_all_rows(dbConn, sql)
     
