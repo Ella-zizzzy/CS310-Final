@@ -251,8 +251,8 @@ def users(baseurl):
       return
 
     for user in users:
-      print(user.userid)
-      print(" ", user.username)
+      print(" - User Id: ",user.userid)
+      print("   User Name: ", user.username)
     #
     return
 
@@ -284,14 +284,14 @@ def addusers(baseurl):
     print("Enter the user name>")
     username = input()
 
-    if username ==():
+    if username == "":
       print("Please enter the valid username.")
       return
 
     print("Enter the password>")
     password = input()
 
-    if password ==():
+    if password == "":
       print("Please enter the valid username.")
       return
 
@@ -348,7 +348,7 @@ def listphotos(baseurl):
     """
     try:
 
-      print("Enter user id")
+      print("Enter user id>")
       userid = input()
 
       #get labels of the input userid TODO what is our api
@@ -417,7 +417,7 @@ def upload(baseurl):
     local_filename = input()
 
     if not pathlib.Path(local_filename).is_file():
-      print("PDF file '", local_filename, "' does not exist...")
+      print("File '", local_filename, "' does not exist...")
       return
 
     print("Enter user id>")
