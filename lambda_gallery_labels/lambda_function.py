@@ -1,5 +1,6 @@
 #
-# Retrieves and returns all the photos of user with the input label
+# Retrieves and returns all the labels  
+# of the user with the input user id
 #
 
 import json
@@ -11,12 +12,11 @@ from configparser import ConfigParser
 
 def lambda_handler(event, context):
   try:
-    print("**STARTING**")
-    print("**lambda: proj03_users**")
+    print("**STARTING LABEL RETRIEVAL**")
+    print("**lambda: final_proj_gallery_labels**")
     
     #
     # setup AWS based on config file:
-    #TO DO: name of the config
     config_file = 'final-project-config.ini'
     os.environ['AWS_SHARED_CREDENTIALS_FILE'] = config_file
     
@@ -31,7 +31,6 @@ def lambda_handler(event, context):
     rds_username = configur.get('rds', 'user_name')
     rds_pwd = configur.get('rds', 'user_pwd')
     rds_dbname = configur.get('rds', 'db_name')
-
 
     #
     # userid from event: could be a parameter
@@ -50,18 +49,8 @@ def lambda_handler(event, context):
         raise Exception("requires userid parameter in event")
         
     print("userid:", userid)
-    ##if the cilent use other name of labels MODIFY selected_label
-    if "selected_label" in event:
-      selected_label = event["selected_label"]
-    elif "pathParameters" in event:
-      if "selected_label" in event["pathParameters"]:
-        selected_label = event["pathParameters"]["selected_label"]
-      else:
-        raise Exception("requires selected_label parameter in pathParameters")
-    else:
-        raise Exception("requires selected_label parameter in event")
-        
-    print("selected_label:", selected_label)
+
+
 
     #
     # open connection to the database:
@@ -71,60 +60,44 @@ def lambda_handler(event, context):
     dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
     
     #
-    # now retrieve all the photo by the input user id an label:
+    # now retrieve labels by the input user id:
     #
     print("**Retrieving data**")
 
     #
-    # write sql query to select all photos from the Photos table
+    # write sql query to select all labels (unique) from Label with userid
     #
-    sql_get_photos =  """
-        SELECT p.photoid, 
-               p.original_name, 
-               p.bucketkey, 
-               l.labelname
-        FROM photos p
-        JOIN labels l ON p.photoid = l.photoid AND p.userid = l.userid
-        WHERE p.userid = %s AND l.labelname = %s
-        """
+    sql_get_labels = "SELECT DISTINCT labelname FROM labels WHERE userid = %s ORDER BY labelname;"
     
-    photos = datatier.retrieve_all_rows(dbConn, sql_get_photos, (userid, selected_label))
+    labels = datatier.retrieve_all_rows(dbConn, sql_get_labels,(userid,))
+
 
     #
     # respond in an HTTP-like way, i.e. with a status
     # code and body in JSON format:
     #
 
-    #if no photos found
-    if not photos:
-      return {
+    #if no labels found
+    if not labels:
+      return{
         'statusCode': 400,
-        'body': json.dumps({"message": f"No photos found for user {userid} with label {selected_label}"})
+        'body': json.dumps({"message": f"No labels found for the user {userid}"})
       }
 
-    # found successfully and display photos with label of userid #
+    # found successfully and display labels of userid #
     
-    print("**DONE, photos found successfully**")
-    
-    photo_list = []
-    for photo in photos:
-      photo_list.append({
-        'userid' : userid,
-        'photoid': photo[0],
-        'labelname': photo[3],
-        'original_name': photo[1],
-        'bucketkey': photo[2]
-        
-      })
+    print("**DONE, labels found successfully**")
 
-    #return successful response
-    return {
+    label_list = [label[0] for label in labels]
+
+    return{
       'statusCode': 200,
-      'body': json.dumps(photo_list)
+      'body': json.dumps(label_list)
     }
-    
+
+
   except Exception as err:
-    print("**ERROR retrieveing phhotos**")
+    print("**ERROR retrieving labels**")
     print(str(err))
     
     return {
