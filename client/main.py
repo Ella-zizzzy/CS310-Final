@@ -962,8 +962,3 @@ except Exception as e:
   logging.error("**ERROR: main() failed:")
   logging.error(e)
   sys.exit(0)
-
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
