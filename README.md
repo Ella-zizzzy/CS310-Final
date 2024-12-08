@@ -4,7 +4,7 @@
 Team members: Ziyue Li, Shuyi Han, Rongwei Peng
 
 ## Overview
-This platform is an intelligent image processing and management system designed to leverage a serverless architecture powered by AWS services. It provides users with a seamless experience for uploading, processing, recognizing, and retrieving images through advanced technologies. The platform integrates AWS Lambda, S3, Rekognition, and RDS (MySQL) to perform efficient image handling and dynamic gallery retrieval.
+This platform is an intelligent image processing and management system designed to leverage a serverless architecture powered by AWS services. It provides users with a seamless experience for uploading, processing, recognizing, and retrieving images through advanced technologies. The platform integrates AWS Lambda, AWS IAM, AWS S3, Rekognition, API Gatewat, and RDS (MySQL) to perform efficient image handling and dynamic gallery retrieval.
 
 
 ## Installation:
@@ -83,6 +83,12 @@ This platform is an intelligent image processing and management system designed 
 
 4. **AWS RDS (MySQL)**:
    - Stores image metadata for efficient query and retrieval.
+   
+5. **AWS API Gateway**:
+   - Stores image as object store.
+  
+6. **AWS IAM**:
+   - Creates and manages secure APIs as entry points to access AWS services.
 
 ### Workflow:
 1. Users upload an image.
@@ -102,7 +108,9 @@ This platform is an intelligent image processing and management system designed 
 - List all images of a user: /images/{userId} -GET
 - Upload a photo: /upload/{userId} -POST
 - Delete a photo: /delete/{userId} -DELETE
-- Process Image:
+- Download a photo: /download/{userid}/{photoid} -GET
+- Process Image:  /process-image/{userid}/{photoid}/{operation} -POST
+
 
 ### Gallery Operations:
 - Retreive lables:  /gallery/{userid}   
